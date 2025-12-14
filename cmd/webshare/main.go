@@ -2,14 +2,18 @@
 package main
 
 import (
+	"context"
 	"flag"
 	"fmt"
 	"log"
 	"net"
 	"net/http"
 	"os"
+	"os/signal"
 	"path"
 	"strings"
+	"syscall"
+	"time"
 
 	"github.com/mdp/qrterminal"
 )
@@ -18,6 +22,7 @@ var (
 	port      = flag.Int("p", 3000, "port to listen on")
 	directory = flag.String("d", ".", "directory to share")
 	qrPrefix  = flag.String("q", "192", "comma or space separated ip addr prefixes to print qr code for")
+	timeout   = flag.Duration("t", 0*time.Second, "temporary share")
 )
 
 var privateIPBlocks []*net.IPNet
@@ -137,7 +142,50 @@ func main() {
 		qrterminal.GenerateWithConfig(fallbackLink, config)
 	}
 
-	if err := http.ListenAndServe(fmt.Sprintf(":%d", *port), nil); err != nil {
-		log.Fatal(err)
+	// Create server instance
+	srv := &http.Server{
+		Addr: fmt.Sprintf(":%d", *port),
+	}
+
+	// Create context for shutdown
+	ctx, cancel := context.WithCancel(context.Background())
+	defer cancel()
+
+	// Handle timeout
+	if *timeout > 0 {
+		log.Printf("Server will shut down after %v", *timeout)
+		time.AfterFunc(*timeout, func() {
+			cancel()
+		})
+	}
+
+	// Handle interrupt signals
+	sigChan := make(chan os.Signal, 1)
+	signal.Notify(sigChan, syscall.SIGINT, syscall.SIGTERM)
+	go func() {
+		<-sigChan
+		log.Println("\nReceived interrupt signal, shutting down...")
+		cancel()
+	}()
+
+	// Start server in a goroutine
+	go func() {
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			log.Fatal(err)
+		}
+	}()
+
+	// Wait for context to be done (timeout or interrupt)
+	<-ctx.Done()
+
+	// Create a context for graceful shutdown
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	defer cancel()
+
+	// Attempt graceful shutdown
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		log.Printf("Server forced to shutdown: %v", err)
+	} else {
+		log.Println("Server gracefully stopped")
 	}
 }
