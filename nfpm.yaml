@@ -156,6 +156,9 @@ contents:
   - src: webshare
     dst: /usr/local/bin/webshare
 
+  - src: fixname
+    dst: /usr/local/bin/fixname
+
   # This duplicates the directory structure of 'some/directory' into '/etc',
   # without taking ownership of the directories.
   # - src: some/directory/
