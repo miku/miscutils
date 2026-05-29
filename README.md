@@ -2,6 +2,10 @@
 
 > Hyperecclectic mix of cli tools.
 
+* webshare
+* fixfn
+* bytehist
+
 ## webshare
 
 Instantly share a directory over the web, with QR code support.
