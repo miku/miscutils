@@ -22,7 +22,7 @@ func main() {
 	flag.Parse()
 	args := flag.Args()
 	if len(args) == 0 {
-		fmt.Fprintln(os.Stderr, "Usage: safename [options] file1 [file2 ...]")
+		fmt.Fprintln(os.Stderr, "Usage: fixfn [options] file1 [file2 ...]")
 		fmt.Fprintln(os.Stderr, "Options:")
 		flag.PrintDefaults()
 		return

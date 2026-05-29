@@ -32,6 +32,6 @@ go.work.sum
 # .vscode/
 
 /webshare
-/fixname
+/fixfn
 *deb
 *rpm
