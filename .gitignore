@@ -33,5 +33,7 @@ go.work.sum
 
 /webshare
 /fixfn
+/bytehist
 *deb
 *rpm
+

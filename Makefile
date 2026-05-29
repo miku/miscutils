@@ -1,5 +1,5 @@
 SHELL := /bin/bash
-TARGETS := webshare fixfn
+TARGETS := webshare fixfn bytehist
 
 .PHONY: all
 all: $(TARGETS)
